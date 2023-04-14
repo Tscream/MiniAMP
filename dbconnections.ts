@@ -1,6 +1,4 @@
-import { rejects } from "assert/strict";
 import mysql from "mysql";
-import { resolve } from "path";
 
 interface MyCredentials {
     host: string,
@@ -9,62 +7,70 @@ interface MyCredentials {
     database: string
 }
 
-interface dbModel {
-    id: number,
-    name?: string,
-    head: string,
-    body: string,
-    legs: string,
-    xPos: number,
-    yPos: number
-}
+// interface iPlayer {
+//     id: number,
+//     name?: string,
+//     head: string,
+//     body: string,
+//     legs: string,
+//     xPos: number,
+//     yPos: number
+// }
 
-let MyCredentials: MyCredentials
-MyCredentials = {
+let MyCredentials: MyCredentials = {
     "host": "localhost",
     "user": "root",
     "password": "",
     "database": "MiniAMP"
 }
 
-const dbConnections = mysql.createConnection(MyCredentials);
+const db = mysql.createConnection(MyCredentials);
 
 try {
-    dbConnections.connect();
+    db.connect();
 } catch (error) {
     console.log("Error: Could not connect", error)
+    throw "NO DB CONNECTION"
 }
 
-async function createName(name: string) {
-    let queryString = `INSERT into player (name) VALUES (${mysql.escape(name)})`
-    return new Promise((resolve, reject) => {
-        dbConnections.query(queryString, (err, result) => {
-            if (err) reject(err);
-            resolve(result)
-        })
-    })
-}
+// export async function CreatePlayer(player: iPlayer): Promise<any> {
+//     let queryString = `INSERT into player (name) VALUES (${mysql.escape(player.name)})`
+//     return new Promise((resolve, reject) => {
+//         db.query(queryString, (err, result) => {
+//             if (err) reject(err);
+//             resolve(result)
+//         })
+//     })
+// }
 
-async function GetAllData(): Promise<dbModel> {
-    let queryString = `SELECT * FROM player`
-    return new Promise((resolve, reject) => {
-        dbConnections.query(queryString, (err, result) => {
-            if (err) reject(err)
-            resolve(JSON.parse(JSON.stringify(result[2]))) //gets row from index (if: no index "returns all rows")
-        })
-    })
+// export async function GetAllPlayers(): Promise<Array<iPlayer>> {
+//     let queryString = `SELECT * FROM player`
+//     return new Promise((resolve, reject) => {
+//         db.query(queryString, (err, result) => {
+//             if (err) {
+//                 console.error(err)
+//                 reject(err)
+//             }
 
-}
+//             resolve(result)
+//         })
+//     })
 
+// }
 
+// export async function GetPlayer(id:number): Promise<iPlayer> {
+//     let queryString = `SELECT * FROM player WHERE id = ${mysql.escape(id)} LIMIT 1`
+//     return new Promise((resolve, reject) => {
+//         db.query(queryString, (err, result) => {
+//             if (err) {
+//                 console.error(err)
+//                 reject(err)
+//             }
 
+//             resolve(result[0]) // return obj here json stringify it in the route
+//         })
+//     })
 
+// }
 
-
-
-export default
-    {
-        mysql: dbConnections,
-        createName,
-        GetAllData
-    }
+export default db

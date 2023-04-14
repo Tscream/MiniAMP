@@ -1,28 +1,25 @@
-import express from "express";
-import dbconnections from "./dbconnections";
+// import express from "express";
+// import db, { GetAllPlayers } from "./dbconnections";
 
-const router = express.Router();
+// const router = express.Router();
 
-router.get('/', async (req: any, res: any) => {
-    // console.log(req);
-    // console.log(req.params);
-    dbconnections.mysql;
-    // dbconnections.createName("Tiyani") //creates new row with input
+// router.get('/', async (req: any, res: any) => {
+//     try{
+//        let players = await GetAllPlayers();
+//        console.log(players[0].name) //returns column of row (if: no column "return whole row")
+//     } catch(e){
+//         res.status(500).send('Something broke!')
+//         console.error(e)
+//     }
 
-    try{
-       let response= await dbconnections.GetAllData();
-       console.log(response.name) //returns column of row (if: no column "return whole row")
-    } 
-    catch(e){console.error(e)}
+//     res.status(200).send('Got something?.')
+// })
 
-    res.status(200).send('Got something?.')
-})
+// router.post('/', function (req: any, res: any) {
 
-router.post('/', function (req: any, res: any) {
+//     console.log(req.body);
 
-    console.log(req.body);
+//     res.status(200).send('Something was posted')
+// })
 
-    res.status(200).send('Something was posted')
-})
-
-export default router
+// export default router
