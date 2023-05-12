@@ -3,7 +3,7 @@ import * as http from 'http';
 import * as WebSocket from 'ws';
 
 import bodyParser from 'body-parser';
-import db from './dbconnections';
+import db, { CreatePlayer, GetAllPlayers, GetPlayer } from './dbconnections';
 
 const app = express();
 const port = 1337;
@@ -30,17 +30,18 @@ interface SocketRequest {
 
 webSocketServer.on('connection', (webSocket: WebSocket) => {
 
-    webSocket.on('message', (message: string) => {
+    webSocket.on('message', async (message: string) => {
 
         try {
-            let request = JSON.parse(message);
+            let request:SocketRequest = JSON.parse(message);
 
-            if (request.type) {
+            if (!request.type) 
+                throw "No type";
 
-                console.log("Request type :: ", request.type);
-                console.log("Request data :: ", request.data);
+            console.log("Request type :: ", request.type);
+            console.log("Request data :: ", request.data);
 
-                switch (request.type) {
+            switch (request.type) {
 
                     // case "get_PlayerName": {
                     //     db.query(`SELECT name FROM player WHERE id = ? LIMIT 1`, [request.data], function (err: any, result: [{ name: string }], fields: any) {
@@ -55,47 +56,47 @@ webSocketServer.on('connection', (webSocket: WebSocket) => {
                     //     break;
                     // }
 
-                    case "get_PlayerName": {
-                        db.query(`SELECT name FROM player WHERE id = ?`, [request.data], function (err, result) {
+                case "get_PlayerName": {
+                    if(isNaN(request.data))
+                        throw 'not a number';
+                    let player = await GetPlayer(request.data);
 
-                            if (err) throw err;
-                            webSocket.send(`Player with id ${request.data} has name ${result[0].name}`);
-                            console.log("Result data :: ", result[0].name);
-                        });
-
-                        break;
-                    }
-
-                    case "create_Player": {
-                        db.query(`INSERT INTO player (name) VALUES (?)`, [request.data], function (err, result) {
-                            if (err) throw err;
-                            webSocket.send(`Player created with id ${result.insertId} and name ${request.data}`);
-                            console.log("Result data :: ", result.insertId)
-                        });
-
-                        break;
-                    }
-
-                    case "echo": {
-                        webSocket.send(`Echo:: ${request.data}`);
-                        break;
-                    }
-
-                    default: {
-                        console.log(request)
-                        break;
-                    }
-
+                    //webSocket.send(`Player with id ${request.data} has name ${player.name}`);
+                    webSocket.send(JSON.stringify(player));
+                    console.log("Result data :: ", player.name);
+                    break;
                 }
 
-            }
-            else {
-                throw "No type"
-            }
+                case "create_Player": {
+                    let player = await CreatePlayer({
+                        name: request.data
+                    });
 
+                    webSocket.send(`Player created with id ${player.id} and name ${player.name}`);
+                    console.log("Result data :: ", player.id)
+                    break;
+                }
+
+                case "list_Players": {
+                    let players = await GetAllPlayers();
+
+                    //webSocket.send(`All players in DB :: ${JSON.stringify(players)}`);
+                    webSocket.send(JSON.stringify(players));
+                }
+
+                case "echo": {
+                    webSocket.send(`Echo:: ${request.data}`);
+                    break;
+                }
+
+                default: {
+                    console.log(request)
+                    break;
+                }
+            }
         }
         catch (e) {
-            console.error(e)
+            console.error(e);
             webSocket.send(`Error ${e}`);
         }
 
