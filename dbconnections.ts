@@ -1,5 +1,11 @@
 import mysql from "mysql";
 
+enum ObjectType
+{
+    PLAYER = "player",
+    CLOTHING = "clothing"
+}
+
 interface MyCredentials {
     host: string,
     user: string,
@@ -20,6 +26,7 @@ interface iPlayer {
 interface iClothes {
     id?: number,
     name?: string,
+    path?: string,
     type?: string,
     winter?: boolean,
     summer?: boolean
@@ -53,6 +60,7 @@ try {
             CREATE TABLE IF NOT EXISTS \`clothing\` (
                 \`id\` INT NOT NULL AUTO_INCREMENT,
                 \`name\` VARCHAR(255) DEFAULT 'noname',
+                \`path\` TEXT DEFAULT '',
                 \`type\` TEXT DEFAULT '',
                 \`path\` TEXT DEFAULT '',
                 \`winter\` BOOLEAN DEFAULT false,
@@ -120,6 +128,22 @@ export async function GetClothing(id:number): Promise<iClothes> {
     if(id <  1)
         id = 1;
     let queryString = `SELECT * FROM clothing WHERE id = ? LIMIT 1`;
+    return new Promise((resolve, reject) => {
+        db.query(queryString, [id], (err, result) => {
+            if (err) {
+                console.error(err)
+                reject(err)
+            }
+
+            resolve(result[0]) //return obj here json stringify it in the route
+        })
+    })
+}
+
+export async function GetObject<T>(id:number, type:ObjectType): Promise<T> {
+    if(id <  1)
+        id = 1;
+    let queryString = `SELECT * FROM ${type} WHERE id = ? LIMIT 1`;
     return new Promise((resolve, reject) => {
         db.query(queryString, [id], (err, result) => {
             if (err) {
