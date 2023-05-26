@@ -3,7 +3,8 @@ import * as http from 'http';
 import * as WebSocket from 'ws';
 
 import bodyParser from 'body-parser';
-import db, { CreatePlayer, GetAllPlayers, GetPlayer } from './dbconnections';
+import db, { GetPlayer } from './dbconnections';
+import { walkUpBindingElementsAndPatterns } from 'typescript';
 
 const app = express();
 const port = 1337;
@@ -18,71 +19,70 @@ interface SocketRequest {
     data: any
 }
 
-// interface iPlayer {
-//     id: number,
-//     name?: string,
-//     head: string,
-//     body: string,
-//     legs: string,
-//     xPos: number,
-//     yPos: number
-// }
-
 webSocketServer.on('connection', (webSocket: WebSocket) => {
 
     webSocket.on('message', async (message: string) => {
 
         try {
             let request:SocketRequest = JSON.parse(message);
-
+            
             if (!request.type) 
-                throw "No type";
-
+            throw "No type";
+            
             console.log("Request type :: ", request.type);
             console.log("Request data :: ", request.data);
-
+            
             switch (request.type) {
-
-                    // case "get_PlayerName": {
-                    //     db.query(`SELECT name FROM player WHERE id = ? LIMIT 1`, [request.data], function (err: any, result: [{ name: string }], fields: any) {
-
-                    //         let names = result.map((res) => { return res.name })
-
-                    //         if (err) throw err;
-                    //         webSocket.send(`Player with id ${request.data} has name ${names[0]}`);
-                    //         console.log("Result data :: ", names[0])
-                    //     });
-
-                    //     break;
-                    // }
-
-                case "get_PlayerName": {
+                
+                case "get_Player": {
                     if(isNaN(request.data))
                         throw 'not a number';
                     let player = await GetPlayer(request.data);
-
-                    //webSocket.send(`Player with id ${request.data} has name ${player.name}`);
+        
                     webSocket.send(JSON.stringify(player));
                     console.log("Result data :: ", player.name);
                     break;
                 }
+                
+                
+                // case "create_Player": {
+                //     let player = await CreatePlayer({
+                //         name: request.data
+                //     });
 
-                case "create_Player": {
-                    let player = await CreatePlayer({
-                        name: request.data
-                    });
+                //     webSocket.send(`Player created with id ${player.id} and name ${player.name}`);
+                //     console.log("Result data :: ", player.id)
+                //     break;
+                // }
+                
+                // case "set_Clothing": {
+                //     let clothing = await SetClothing({
+                //         name: request.data
+                //     });
 
-                    webSocket.send(`Player created with id ${player.id} and name ${player.name}`);
-                    console.log("Result data :: ", player.id)
-                    break;
-                }
+                //     webSocket.send(`Clothing set with id ${clothing.id} and name ${clothing.name}`);
+                //     console.log("Result data :: ", clothing.id)
+                //     break;
+                // }
+                
+                // case "get_Clothing": {
+                //     if(isNaN(request.data))
+                //         throw 'not a number';                    
+                //     let clothing = await GetClothing(request.data);
 
-                case "list_Players": {
-                    let players = await GetAllPlayers();
+                //     webSocket.send(JSON.stringify(clothing));
+                //     console.log("Result data :: ", clothing.name);
+                //     break;
+                // }
 
-                    //webSocket.send(`All players in DB :: ${JSON.stringify(players)}`);
-                    webSocket.send(JSON.stringify(players));
-                }
+
+
+                // case "get_Players": {
+                //     let players = await GetAllPlayers();
+
+                //     //webSocket.send(`All players in DB :: ${JSON.stringify(players)}`);
+                //     webSocket.send(JSON.stringify(players));
+                // }
 
                 case "echo": {
                     webSocket.send(`Echo:: ${request.data}`);
@@ -103,6 +103,7 @@ webSocketServer.on('connection', (webSocket: WebSocket) => {
     });
 
     webSocket.send("Connected..");
+    console.log(`Connected with client`)
 
 });
 

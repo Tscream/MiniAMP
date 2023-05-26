@@ -47,28 +47,45 @@ try {
             CREATE TABLE IF NOT EXISTS \`player\` (
                 \`id\` INT NOT NULL AUTO_INCREMENT,
                 \`name\` VARCHAR(255) DEFAULT 'noname',
-                \`head\` TEXT DEFAULT '',
-                \`body\` TEXT DEFAULT '',
-                \`legs\` TEXT DEFAULT '',
+                \`hairID\` INT DEFAULT 0,
+                \`topID\` INT DEFAULT 0,
+                \`bottomID\` INT DEFAULT 0,
                 \`xPos\` INT DEFAULT 0,
                 \`yPos\` INT DEFAULT 0,
                 PRIMARY KEY (id)
             );`
         );
+
+        db.query(`
+            CREATE TABLE IF NOT EXISTS \`hair\` (
+                \`id\` INT NOT NULL AUTO_INCREMENT,
+                \`path\` TEXT DEFAULT '',
+                PRIMARY KEY (id)
+            );`
+        );
         
         db.query(`
-            CREATE TABLE IF NOT EXISTS \`clothing\` (
+            CREATE TABLE IF NOT EXISTS \`top\` (
                 \`id\` INT NOT NULL AUTO_INCREMENT,
-                \`name\` VARCHAR(255) DEFAULT 'noname',
-                \`path\` TEXT DEFAULT '',
-                \`type\` TEXT DEFAULT '',
                 \`path\` TEXT DEFAULT '',
                 \`winter\` BOOLEAN DEFAULT false,
                 \`summer\` BOOLEAN DEFAULT false,
                 PRIMARY KEY (id)
             );`
         );
+
+        db.query(`
+            CREATE TABLE IF NOT EXISTS \`bottom\` (
+                \`id\` INT NOT NULL AUTO_INCREMENT,
+                \`path\` TEXT DEFAULT '',
+                \`winter\` BOOLEAN DEFAULT false,
+                \`summer\` BOOLEAN DEFAULT false,
+                PRIMARY KEY (id)
+            );`
+        );
+
     });
+
 } catch (error) {
     console.log("Error: Could not connect", error)
     throw "NO DB CONNECTION"
@@ -84,34 +101,15 @@ export async function CreatePlayer(player: iPlayer): Promise<any> {
     })
 }
 
-export async function CreateClothing(clothing: iClothes): Promise<any> {
-    let queryString = `INSERT into clothing (name, type, winter, summer) VALUES (?, ?, ?, ?)`;
-    return new Promise((resolve, reject) => {
-        db.query(queryString, [clothing.name, clothing.type, clothing.winter, clothing.summer], (err, result) => {
-            if (err) reject(err);
-            resolve(result)
-        })
-    })
-}
-
-export async function GetAllPlayers(): Promise<Array<iPlayer>> {
-    let queryString = `SELECT * FROM player LIMIT 100`;
-    return new Promise((resolve, reject) => {
-        db.query(queryString, (err, result) => {
-            if (err) {
-                console.error(err)
-                reject(err)
-            }
-
-            resolve(result)
-        })
-    })
-}
-
 export async function GetPlayer(id:number): Promise<iPlayer> {
     if(id <  1)
         id = 1;
-    let queryString = `SELECT * FROM player WHERE id = ? LIMIT 1`;
+    let queryString =   `SELECT player.name, hair.*, top.*, bottom.*  
+                        FROM player 
+                        INNER JOIN hair ON player.hairID=hair.id
+                        INNER JOIN top ON player.topID=top.id
+                        INNER JOIN bottom ON player.bottomID=bottom.id
+                        WHERE id = ? `; //LIMIT 1
     return new Promise((resolve, reject) => {
         db.query(queryString, [id], (err, result) => {
             if (err) {
@@ -139,6 +137,23 @@ export async function GetClothing(id:number): Promise<iClothes> {
         })
     })
 }
+
+
+export async function GetAllPlayers(): Promise<Array<iPlayer>> {
+    let queryString = `SELECT * FROM player LIMIT 100`;
+    return new Promise((resolve, reject) => {
+        db.query(queryString, (err, result) => {
+            if (err) {
+                console.error(err)
+                reject(err)
+            }
+
+            resolve(result)
+        })
+    })
+}
+
+
 
 export async function GetObject<T>(id:number, type:ObjectType): Promise<T> {
     if(id <  1)
