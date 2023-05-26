@@ -40,7 +40,7 @@ webSocketServer.on('connection', (webSocket: WebSocket) => {
                     let player = await GetPlayer(request.data);
         
                     webSocket.send(JSON.stringify(player));
-                    console.log("Result data :: ", player.name);
+                    console.log("Result data :: ", player);
                     break;
                 }
                 

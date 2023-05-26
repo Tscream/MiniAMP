@@ -104,12 +104,12 @@ export async function CreatePlayer(player: iPlayer): Promise<any> {
 export async function GetPlayer(id:number): Promise<iPlayer> {
     if(id <  1)
         id = 1;
-    let queryString =   `SELECT player.name, hair.*, top.*, bottom.*  
+    let queryString =   `SELECT player.name, hair.*, top.*, bottom.*
                         FROM player 
                         INNER JOIN hair ON player.hairID=hair.id
                         INNER JOIN top ON player.topID=top.id
                         INNER JOIN bottom ON player.bottomID=bottom.id
-                        WHERE id = ? `; //LIMIT 1
+                        WHERE player.id = ? `;
     return new Promise((resolve, reject) => {
         db.query(queryString, [id], (err, result) => {
             if (err) {
@@ -117,27 +117,10 @@ export async function GetPlayer(id:number): Promise<iPlayer> {
                 reject(err)
             }
 
-            resolve(result[0]) //return obj here json stringify it in the route
+            resolve(result) //return obj here json stringify it in the route
         })
     })
 }
-
-export async function GetClothing(id:number): Promise<iClothes> {
-    if(id <  1)
-        id = 1;
-    let queryString = `SELECT * FROM clothing WHERE id = ? LIMIT 1`;
-    return new Promise((resolve, reject) => {
-        db.query(queryString, [id], (err, result) => {
-            if (err) {
-                console.error(err)
-                reject(err)
-            }
-
-            resolve(result[0]) //return obj here json stringify it in the route
-        })
-    })
-}
-
 
 export async function GetAllPlayers(): Promise<Array<iPlayer>> {
     let queryString = `SELECT * FROM player LIMIT 100`;
@@ -152,8 +135,6 @@ export async function GetAllPlayers(): Promise<Array<iPlayer>> {
         })
     })
 }
-
-
 
 export async function GetObject<T>(id:number, type:ObjectType): Promise<T> {
     if(id <  1)
